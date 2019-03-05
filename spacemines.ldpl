@@ -1,0 +1,301 @@
+# Space Mines
+# Ported from BASIC to LDPL by Simon Dann in 2019
+# Originally authored by Daniel Isaaman and Jenny Tyler in 1982
+
+DATA:
+game/year is number
+
+game/numMines is number
+game/numPeople is number
+game/money is number
+game/food is number
+game/foodPrice is number
+game/oreProduction is number
+game/oreStorage is number
+game/satisfaction is number
+game/minePrice is number
+game/orePrice is number
+
+scratch/r is number
+scratch/i is number
+scratch/n is number
+scratch/s is number
+
+rand/min is number
+rand/max is number
+rand/r is number
+rand/result is number
+
+collect/i is number
+
+PROCEDURE:
+
+##
+# Random number generator
+# set rand/min for minimum value
+# set rand/max for maximum value
+# get rand/result for resulting random value
+##
+sub-procedure roll-random-dice
+        store random in rand/r
+	subtract rand/min from rand/max in rand/result
+	multiply rand/r by rand/result in rand/result
+	add rand/result and rand/min in rand/result
+end sub-procedure
+
+##
+# Generate Mine Price
+##
+sub-procedure roll-mine-price
+	store 2000 in rand/min
+	store 4000 in rand/max
+	call sub-procedure roll-random-dice
+	store rand/result in game/minePrice
+	floor game/minePrice
+end sub-procedure
+
+##
+# Generate Ore Price
+##
+sub-procedure roll-ore-price
+	store 7 in rand/min
+	store 12 in rand/max
+	call sub-procedure roll-random-dice
+	store rand/result in game/orePrice
+	floor game/orePrice
+end sub-procedure
+
+##
+# Initiate Game Variables
+##
+sub-procedure setup-game
+	store 1 in game/year
+	store 0 in game/oreStorage
+	store 1 in game/satisfaction
+
+	store 3 in rand/min
+	store 6 in rand/max
+	call sub-procedure roll-random-dice
+	store rand/result in game/numMines
+	floor game/numMines
+
+	store 40 in rand/min
+	store 60 in rand/max
+	call sub-procedure roll-random-dice
+        store rand/result in game/numPeople
+	floor game/numPeople
+
+	store 10 in rand/min
+	store 50 in rand/max
+	call sub-procedure roll-random-dice
+        store rand/result in game/money
+	multiply game/money by game/numPeople in game/money
+	floor game/money
+
+	store 40 in rand/min
+	store 80 in rand/max
+	call sub-procedure roll-random-dice
+        store rand/result in game/foodPrice
+	floor game/foodPrice
+
+	call sub-procedure roll-random-dice
+        store rand/result in game/oreProduction
+	floor game/oreProduction
+end sub-procedure
+
+##
+# Collect ORE at the end of the game year
+# This is called by display-tick and only seperated
+# out here for readability.
+##
+sub-procedure collect-ore
+        multiply game/oreProduction by game/numMines in collect/i
+        add collect/i and game/oreStorage in game/oreStorage
+end sub-procedure
+
+##
+# Display stats for the current game year
+##
+sub-procedure display-tick
+	call sub-procedure collect-ore	
+	display "==================================================" CRLF
+	display "YEAR " game/year ":" CRLF
+	display CRLF
+	display "There are " game/numPeople " people in the colony." CRLF
+	display "You have " game/numMines " mines, and $" game/money CRLF
+	display "Satisfaction Factor " game/satisfaction CRLF
+	display CRLF
+	display "Your mines procuced " game/oreProduction " tons each." CRLF
+	display "ORE IN STORE=" game/oreStorage " tons." CRLF
+	display "==================================================" CRLF
+end sub-procedure
+
+sub-procedure selling
+	display CRLF
+	display "SELLING" CRLF
+	display "Ore selling price: " game/orePrice CRLF
+	display "Mine selling price: " game/minePrice "/mine" CRLF
+
+	while 1 is equal to 1 do
+		display "How much ore to sell? "
+		accept scratch/i
+		floor scratch/i
+
+		if scratch/i is equal to 0 then
+                        break
+                end if
+
+		if scratch/i is greater than 0 then
+			if scratch/i is less than or equal to game/oreStorage then
+				multiply game/orePrice by scratch/i in scratch/n
+				floor scratch/n
+				add game/money and scratch/n in game/money
+				subtract scratch/i from game/oreStorage in game/oreStorage
+				break
+			end if
+		end if
+		display "Please enter a number between 1 and " game/oreStorage CRLF
+	repeat
+
+	 while 1 is equal to 1 do
+                display "How many mines to sell? "
+                accept scratch/i
+                floor scratch/i
+
+		if scratch/i is equal to 0 then
+			break
+		end if
+
+                if scratch/i is greater than 0 then
+                        if scratch/i is less than or equal to game/numMines then
+                                multiply game/minePrice by scratch/i in scratch/n
+                                floor scratch/n
+                                add game/money and scratch/n in game/money
+                                subtract scratch/i from game/numMines in game/numMines
+                                break
+                        end if
+                end if
+                display "Please enter a number between 1 and " game/numMines CRLF
+        repeat
+end sub-procedure
+
+sub-procedure buying
+	display CRLF "You have $" game/money CRLF CRLF
+	display "BUYING" CRLF
+	
+		while 1 is equal to 1 do
+		display "How much to spend on food? $"
+		accept scratch/i
+                floor scratch/i
+
+		display "Buying $" scratch/i " food" CRLF
+
+		if scratch/i is equal to 0 then
+                        break
+                end if
+
+		if scratch/i is greater than 0 then
+			if scratch/i is less than or equal to game/money then
+				subtract scratch/i from game/money in game/money
+				divide scratch/i by game/numPeople in scratch/s
+				if scratch/s is greater than or equal to 120 then
+					add 0.1 and game/satisfaction in game/satisfaction
+				end if
+
+				if scratch/s is less than or equal to 89 then
+					subtract 0.2 from game/satisfaction in game/satisfaction
+				end if
+
+				break
+			end if
+			display "You don't have enough money to afford that amount of food." CRLF
+		end if
+	repeat
+
+	while 1 is equal to 1 do
+		display "How many mines to buy? "
+		accept scratch/i
+		floor scratch/i
+
+		if scratch/i is equal to 0 then
+                        break
+                end if
+
+		if scratch/i is greater than 0 then
+			multiply scratch/i by game/minePrice in scratch/s
+			floor scratch/s
+			if scratch/s is less than or equal to game/money then
+				add scratch/i and game/numMines in game/numMines
+				subtract scratch/s from game/money in game/money
+				break
+			end if
+			display "That many mines would cost $" scratch/s " you only have $" game/money CRLF
+		end if
+	repeat
+
+end sub-procedure
+
+call sub-procedure setup-game
+
+##
+# Main Game Loop
+##
+while 1 is equal to 1 do
+	call sub-procedure roll-ore-price
+	call sub-procedure roll-mine-price
+
+	call sub-procedure display-tick
+	call sub-procedure selling
+	call sub-procedure buying
+
+	# Depending on satisfaction between 1 and 10 people will join or leave
+	store 1 in rand/min
+        store 10 in rand/max
+        call sub-procedure roll-random-dice
+	floor rand/result
+	
+
+	# If satisfaction is high, more people arrive
+	if game/satisfaction is greater than or equal to 1.1 then
+	        add rand/result and game/numPeople in game/numPeople
+	end if
+
+	# People leave if satisfaction is low
+	if game/satisfaction is less than 0.9 then
+		subtract rand/result from game/numPeople in game/numPeople		
+	end if
+
+	# You win the game if you last ten years
+        if game/year is equal to 10 then
+                display "Hurrah! You survived your term of office." CRLF
+                break
+        end if
+
+        # If the satifaction is too low then its game over
+	if game/satisfaction is less than 0.6 then
+		display "The people revolted! Game Over!" CRLF
+		break
+	end if
+
+	# If there are less than 10 people per mine then its game over
+	divide game/numPeople by game/numMines in scratch/s
+	if scratch/s is less than 10 then
+		display "You have over worked everyone, Game Over!" CRLF
+		break
+	end if
+
+	# If there are less than 30 people then the game is over
+	if game/numPeople is less than 30 then
+		display "Not enough people left, Game Over!" CRLF
+	end if
+
+	# Introduce a small chance of failure, to make things more "FUN"
+	store random in scratch/r	
+	if scratch/r is less than 0.1 then
+		display "RADIOACTIVE LEAK... MANY DIE!" CRLF
+		divide game/numPeople by 2 in game/numPeople
+		floor game/numPeople
+	end if
+
+	add 1 and game/year in game/year	
+repeat
