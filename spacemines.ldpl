@@ -37,10 +37,10 @@ PROCEDURE:
 # get rand/result for resulting random value
 ##
 sub-procedure roll-random-dice
-        store random in rand/r
-	subtract rand/min from rand/max in rand/result
-	multiply rand/r by rand/result in rand/result
-	add rand/result and rand/min in rand/result
+        get random in rand/r
+	in rand/result solve rand/max - rand/min
+	in rand/result solve rand/r * rand/result
+	in rand/result solve rand/result + rand/min
 end sub-procedure
 
 ##
@@ -89,7 +89,7 @@ sub-procedure setup-game
 	store 50 in rand/max
 	call sub-procedure roll-random-dice
         store rand/result in game/money
-	multiply game/money by game/numPeople in game/money
+	in game/money solve game/money * game/numPeople
 	floor game/money
 
 	store 40 in rand/min
@@ -109,8 +109,8 @@ end sub-procedure
 # out here for readability.
 ##
 sub-procedure collect-ore
-        multiply game/oreProduction by game/numMines in collect/i
-        add collect/i and game/oreStorage in game/oreStorage
+        in collect/i solve game/oreProduction * game/numMines
+        in game/oreStorage solve collect/i + game/oreStorage
 end sub-procedure
 
 ##
@@ -147,10 +147,10 @@ sub-procedure selling
 
 		if scratch/i is greater than 0 then
 			if scratch/i is less than or equal to game/oreStorage then
-				multiply game/orePrice by scratch/i in scratch/n
+				in scratch/n solve game/orePrice * scratch/i
 				floor scratch/n
-				add game/money and scratch/n in game/money
-				subtract scratch/i from game/oreStorage in game/oreStorage
+				in game/money solve game/money + scratch/n
+				in game/oreStorage solve game/oreStorage - scratch/i
 				break
 			end if
 		end if
@@ -168,10 +168,10 @@ sub-procedure selling
 
                 if scratch/i is greater than 0 then
                         if scratch/i is less than or equal to game/numMines then
-                                multiply game/minePrice by scratch/i in scratch/n
+                                in scratch/n solve game/minePrice * scratch/i
                                 floor scratch/n
-                                add game/money and scratch/n in game/money
-                                subtract scratch/i from game/numMines in game/numMines
+                                in game/money solve game/money + scratch/n
+                                in game/numMines solve game/numMines - scratch/i
                                 break
                         end if
                 end if
@@ -196,14 +196,14 @@ sub-procedure buying
 
 		if scratch/i is greater than 0 then
 			if scratch/i is less than or equal to game/money then
-				subtract scratch/i from game/money in game/money
-				divide scratch/i by game/numPeople in scratch/s
+				in game/money solve game/money - scratch/i
+				in scratch/s solve scratch/i / game/numPeople
 				if scratch/s is greater than or equal to 120 then
-					add 0.1 and game/satisfaction in game/satisfaction
+					in game/satisfaction solve 0.1 + game/satisfaction
 				end if
 
 				if scratch/s is less than or equal to 89 then
-					subtract 0.2 from game/satisfaction in game/satisfaction
+					in game/satisfaction solve game/satisfaction - 0.2
 				end if
 
 				break
@@ -222,11 +222,11 @@ sub-procedure buying
                 end if
 
 		if scratch/i is greater than 0 then
-			multiply scratch/i by game/minePrice in scratch/s
+			in scratch/s solve scratch/i * game/minePrice
 			floor scratch/s
 			if scratch/s is less than or equal to game/money then
-				add scratch/i and game/numMines in game/numMines
-				subtract scratch/s from game/money in game/money
+				in game/numMines solve scratch/i + game/numMines
+				in game/money solve game/money - scratch/s
 				break
 			end if
 			display "That many mines would cost $" scratch/s " you only have $" game/money CRLF
@@ -257,12 +257,12 @@ while 1 is equal to 1 do
 
 	# If satisfaction is high, more people arrive
 	if game/satisfaction is greater than or equal to 1.1 then
-	        add rand/result and game/numPeople in game/numPeople
+	        in game/numPeople solve rand/result + game/numPeople
 	end if
 
 	# People leave if satisfaction is low
 	if game/satisfaction is less than 0.9 then
-		subtract rand/result from game/numPeople in game/numPeople		
+		in game/numPeople		 solve game/numPeople - rand/result
 	end if
 
 	# You win the game if you last ten years
@@ -278,7 +278,7 @@ while 1 is equal to 1 do
 	end if
 
 	# If there are less than 10 people per mine then its game over
-	divide game/numPeople by game/numMines in scratch/s
+	in scratch/s solve game/numPeople / game/numMines
 	if scratch/s is less than 10 then
 		display "You have over worked everyone, Game Over!" CRLF
 		break
@@ -290,12 +290,12 @@ while 1 is equal to 1 do
 	end if
 
 	# Introduce a small chance of failure, to make things more "FUN"
-	store random in scratch/r	
+	get random in scratch/r	
 	if scratch/r is less than 0.1 then
 		display "RADIOACTIVE LEAK... MANY DIE!" CRLF
-		divide game/numPeople by 2 in game/numPeople
+		in game/numPeople solve game/numPeople / 2
 		floor game/numPeople
 	end if
 
-	add 1 and game/year in game/year	
+	in game/year	 solve 1 + game/year
 repeat
